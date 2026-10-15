@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>AuraPulse | Smart Ergonomic Desk Light</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <!-- Tailwind CSS Engine -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#eff1f3",
+            "on-primary-fixed": "#131b2e",
+            "on-secondary-fixed": "#001e2f",
+            "on-error": "#ffffff",
+            "surface-variant": "#e0e3e5",
+            "tertiary-fixed-dim": "#ffb95f",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#ffddb8",
+            "on-surface-variant": "#45464d",
+            "primary-fixed": "#dae2fd",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#004666",
+            "outline": "#76777d",
+            "on-background": "#191c1e",
+            "on-tertiary-fixed-variant": "#653e00",
+            "surface": "#f7f9fb",
+            "surface-container-low": "#f2f4f6",
+            "on-tertiary": "#ffffff",
+            "surface-bright": "#f7f9fb",
+            "on-secondary": "#ffffff",
+            "surface-container-highest": "#e0e3e5",
+            "surface-dim": "#d8dadc",
+            "primary-fixed-dim": "#bec6e0",
+            "surface-container-high": "#e6e8ea",
+            "secondary-fixed-dim": "#89ceff",
+            "error": "#ba1a1a",
+            "background": "#f7f9fb",
+            "on-tertiary-container": "#b87500",
+            "on-tertiary-fixed": "#2a1700",
+            "on-error-container": "#93000a",
+            "surface-container": "#eceef0",
+            "inverse-primary": "#bec6e0",
+            "tertiary-container": "#2a1700",
+            "outline-variant": "#c6c6cd",
+            "primary-container": "#131b2e",
+            "secondary-container": "#39b8fd",
+            "on-primary-fixed-variant": "#3f465c",
+            "secondary-fixed": "#c9e6ff",
+            "inverse-surface": "#2d3133",
+            "surface-tint": "#565e74",
+            "on-secondary-fixed-variant": "#004c6e",
+            "on-surface": "#191c1e",
+            "secondary": "#006591",
+            "on-primary-container": "#7c839b",
+            "tertiary": "#000000"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-mobile": "1.25rem",
+            "space-xl": "2.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "margin-tablet": "2rem",
+            "gutter-mobile": "1rem",
+            "gutter": "1.5rem",
+            "margin": "3rem"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+
+    .view-page {
+      display: none;
+      animation: fadeIn 0.35s ease-in-out;
+    }
+    .view-page.active-view {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animated-glow-cyan {
+      animation: pulseGlow 4s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(14,165,233,0.3) 0%, rgba(14,165,233,0) 70%);
+    }
+    .animated-glow-amber {
+      animation: pulseGlow 4s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0) 70%);
+    }
+  </style>
+</head>
+
+<body class="bg-surface font-sans text-on-surface antialiased flex flex-col min-h-screen">
+
+  <!-- GLOBAL HEADER -->
+  <header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)] border-b border-slate-200/50">
+    <div class="h-16 px-margin-mobile flex items-center justify-between gap-space-sm max-w-lg mx-auto">
+      <div class="flex items-center gap-space-sm min-w-0 cursor-pointer" onclick="switchView('discover')">
+        <div class="w-8 h-8 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-slate-950 text-base shadow-[0_0_15px_rgba(14,165,233,0.5)] shrink-0">
+          A
+        </div>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold text-base tracking-tight leading-tight text-on-surface truncate">Aura<span class="text-sky-600">Pulse</span></span>
+          <span id="headerViewLabel" class="text-[10px] text-on-surface-variant uppercase tracking-widest font-semibold truncate">Discover</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-space-xs shrink-0">
+        <button onclick="switchView('checkout')" aria-label="Shopping Cart" class="relative flex items-center justify-center w-11 h-11 rounded-full text-on-surface hover:bg-surface-container transition-colors">
+          <span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+          <span id="globalCartCount" class="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-secondary text-on-secondary font-bold text-[11px] shadow-[0_0_10px_rgba(2,132,199,0.5)]">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN MULTI-PAGE CONTAINER -->
+  <main class="flex flex-col relative w-full pt-16 pb-28 min-h-screen">
+
+    <!-- PAGE 1: DISCOVER / HOMEPAGE -->
+    <div id="view-discover" class="view-page active-view">
+      <div class="px-margin-mobile pt-space-md flex flex-col gap-space-lg max-w-lg mx-auto w-full">
+        
+        <!-- Hero Section -->
+        <section class="flex flex-col gap-space-md">
+          <div class="flex items-center gap-space-xs self-start px-3 py-1.5 rounded-full bg-surface-container-high">
+            <span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,101,145,0.7)] animate-pulse"></span>
+            <span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
+              Precision Ergonomic Lighting • Gen 2
+            </span>
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <h1 class="text-2xl font-bold text-on-surface tracking-tight">
+              Light engineered for circadian focus.
+            </h1>
+            <p class="text-sm text-on-surface-variant leading-relaxed">
+              Dual-spectrum bio-adaptive desk light calibrated to harmonize your natural circadian rhythm and eliminate eye fatigue.
+            </p>
+          </div>
+          
+          <div class="relative w-full rounded-3xl overflow-hidden bg-surface-container-low shadow-md">
+            <div class="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-secondary-container/40 blur-3xl pointer-events-none"></div>
+            <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-tertiary-fixed-dim/30 blur-3xl pointer-events-none"></div>
+            <div class="relative aspect-square w-full">
+              <img alt="AuraPulse Smart Desk Light" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBLAXumjSkwGirxmLiauTf-IXbueNPlGHwYKfqcK_BR2KNpO-yklvb6MXmhKdcUgtIt-iUkSBTaTxesO9HSiaZPUKSWLtQ0n69YhBLXWou772nmg9yrlXlSshKqHsokodUMSZWFJIQ51g02yPQQNx9ny3gWSqKKrazck9aAdr_kE47UfToP8ARiOq4YuIU89ppHClIk1x6ANBdAghU_aRwl66MNZnQRLz4Q3OcBHHX0XtRjCaWRqRcrQ"/>
+              <div class="absolute top-3 left-3 flex flex-col gap-2">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-sm">
+                  <span class="material-symbols-outlined text-secondary text-[16px]">bolt</span>
+                  <span class="text-xs text-on-surface font-semibold">99.4 CRI Accuracy</span>
+                </div>
+              </div>
+              <div class="absolute bottom-3 right-3">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-sm">
+                  <span class="material-symbols-outlined text-amber-600 text-[16px]">bedtime</span>
+                  <span class="text-xs text-on-surface font-semibold">Auto Circadian Shift</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-surface-container-lowest flex items-center justify-between border-t border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_10px_rgba(0,101,145,0.6)]"></span>
+                <div class="flex flex-col">
+                  <span class="text-[10px] text-on-surface-variant uppercase">Current Output</span>
+                  <span class="text-xs text-on-surface font-bold">4200K • 850 Lux</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 text-on-surface-variant text-xs bg-surface-container px-2.5 py-1 rounded-full">
+                <span class="material-symbols-outlined text-[15px]">sensors</span>
+                <span>Ultra-Smooth Arc</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-space-sm pt-1">
+            <button onclick="switchView('product-info')" class="flex items-center justify-center gap-space-sm h-14 px-space-lg rounded-full bg-primary text-on-primary font-bold text-sm shadow-md active:scale-[0.98] transition-all">
+              <span>Explore AuraPulse</span>
+              <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+            <button onclick="quickBuy()" class="flex items-center justify-center gap-space-sm h-14 px-space-lg rounded-full bg-surface-container-lowest text-on-surface font-semibold text-sm shadow-sm active:scale-[0.98] transition-all">
+              <span class="material-symbols-outlined text-secondary text-[22px]">add_shopping_cart</span>
+              <span>Quick Add ($299)</span>
+            </button>
+          </div>
+
+          <!-- Social Proof -->
+          <div class="p-space-md rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1 text-amber-500">
+                <span class="material-symbols-outlined text-[18px]">star</span>
+                <span class="material-symbols-outlined text-[18px]">star</span>
+                <span class="material-symbols-outlined text-[18px]">star</span>
+                <span class="material-symbols-outlined text-[18px]">star</span>
+                <span class="material-symbols-outlined text-[18px]">star</span>
+                <span class="text-xs text-on-surface font-bold ml-1">4.9 / 5</span>
+              </div>
+              <span class="text-xs text-on-surface-variant">2,840+ verified</span>
+            </div>
+            <p class="text-xs text-on-surface-variant">
+              Over <strong class="text-on-surface font-semibold">45,000+</strong> architects, engineers, & studio creators working in optimal spectrum.
+            </p>
+          </div>
+        </section>
+
+        <!-- Benefits Cards -->
+        <section class="flex flex-col gap-space-md">
+          <div class="flex flex-col">
+            <span class="text-xs uppercase tracking-wider text-secondary font-bold">Acoustic Precision & Optical Balance</span>
+            <h2 class="text-xl text-on-surface font-bold tracking-tight">Engineered for human biology.</h2>
+          </div>
+
+          <div class="grid grid-cols-1 gap-space-md">
+            <div class="p-space-md rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-3">
+              <div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+                <span class="material-symbols-outlined text-[26px]">wb_twilight</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <h3 class="font-bold text-sm text-on-surface">Dual-Spectrum Synchrony</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                  Ambient warm amber halo paired with a razor-sharp 5000K daylight task beam. Eliminates harsh contrast and high-glare monitor reflections.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-space-md rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-3">
+              <div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+                <span class="material-symbols-outlined text-[26px]">schedule</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <h3 class="font-bold text-sm text-on-surface">Bio-Adaptive Circadian Engine</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                  Intelligently mirrors real-time celestial solar angles according to your precise latitude. Preserves natural sleep cycles.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom Banner -->
+        <section class="rounded-3xl bg-primary text-on-primary p-space-lg shadow-xl relative overflow-hidden flex flex-col gap-space-md">
+          <div class="flex flex-col gap-1 z-10">
+            <span class="text-xs uppercase tracking-wider text-sky-400 font-bold">Limited Production Batch</span>
+            <h2 class="text-xl font-bold tracking-tight text-on-primary">
+              Upgrade your workstation today.
+            </h2>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Includes precision desk clamp, weighted circular base, and 3-year zero-flicker warranty.
+            </p>
+          </div>
+          <div class="flex items-baseline gap-2 z-10">
+            <span class="text-3xl font-bold text-on-primary">$299</span>
+            <span class="text-sm text-slate-400 line-through">$349</span>
+            <span class="ml-auto px-2.5 py-1 rounded-full bg-secondary text-on-secondary text-xs font-semibold">Save $50 Launch Ed.</span>
+          </div>
+          <button onclick="switchView('checkout')" class="w-full flex items-center justify-center gap-2 h-14 rounded-full bg-on-primary text-primary font-bold text-sm shadow-md active:scale-[0.98] transition-all z-10">
+            <span>Order Now</span>
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+          </button>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- PAGE 2: PRODUCT INFO -->
+    <div id="view-product-info" class="view-page">
+      <div class="px-margin-mobile pt-space-sm pb-space-lg flex flex-col gap-space-lg max-w-lg mx-auto w-full">
+        
+        <!-- Mode Switcher -->
+        <div class="flex items-center justify-between bg-surface-container p-1 rounded-full">
+          <button id="dayModeBtn" onclick="switchSpectrum('day')" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full bg-surface-container-lowest text-primary shadow-sm transition-all">
+            <span class="material-symbols-outlined text-[18px] text-secondary">light_mode</span>
+            <span class="text-xs font-semibold">Circadian Day (5000K)</span>
+          </button>
+          <button id="amberModeBtn" onclick="switchSpectrum('amber')" class="flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full text-on-surface-variant transition-all">
+            <span class="material-symbols-outlined text-[18px] text-amber-500">bedtime</span>
+            <span class="text-xs font-semibold">Amber Evening (2200K)</span>
+          </button>
+        </div>
+
+        <!-- Gallery -->
+        <div class="flex flex-col gap-space-sm">
+          <div class="relative w-full aspect-square rounded-2xl bg-surface-container-low overflow-hidden shadow-sm flex items-center justify-center">
+            <div id="lightGlow" class="absolute -top-10 left-1/4 w-3/4 h-3/4 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none transition-all duration-700"></div>
+            <img id="mainProductImg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkXdasRD8eVbh8uuzSmGx0YOP7g9yQuELGv9SftCNV9lGPP8n3LCsW4Gr0dLXAJsQ0N9eypufURHWm-Z5mGHOKKQJQHHqCyPKHdqQrm542B719cim52HHYuJlj6i4nnFE-8Rq-uZ3YPStr4pn4h0dCwtZimhsNI5GGn2sHgR9J2GtPzER3NPIP4x3hgB3N09i8LANI4xZJffOBCDIxMiHf7Ozq1PL9WGyTkyxN7Tm_gbVHveoAAdiWeA" onerror="this.src=fallbacks[currentAngleIndex]" alt="AuraPulse Smart Desk Light View" class="w-full h-full object-cover transition-opacity duration-300"/>
+            
+            <div class="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest/80 backdrop-blur-md shadow-sm">
+              <span id="spectrumPip" class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+              <span id="spectrumReadout" class="text-xs text-on-surface font-semibold uppercase tracking-wider">5,000K • 1,420 LUX</span>
+            </div>
+          </div>
+
+          <!-- Thumbnails -->
+          <div class="grid grid-cols-4 gap-space-xs">
+            <button onclick="changeAngle(0)" class="thumb-btn aspect-square rounded-xl overflow-hidden bg-surface-container p-0.5 border-2 border-secondary transition-all">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBp0uLpcxBVSLF7IiIJzDrl4iARk06dPrDQCNe-wlwWgHhONvFPEvjzz3mgWvMraVvsuiyo6unbbAcHc0dTVjgKyDGXGBsMakgGOoYpICPk_6Fdoe3pI0Nr32vKQwyIzlqMTO_mK5gwfDP6nAkaGuLltuELBcssOYw0kvsyKp7PAjFOrizrO_hx7PBCCbwoXwhElnOQx7xoh3VLVS0ZUgdrzbj6FudvmXklTYZRUcUvn33oCssoiBPJ1w" onerror="this.src=fallbacks[0]" alt="Desk Angle" class="w-full h-full object-cover rounded-lg"/>
+            </button>
+            <button onclick="changeAngle(1)" class="thumb-btn aspect-square rounded-xl overflow-hidden bg-surface-container p-0.5 opacity-60 hover:opacity-100 transition-all">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs-UJ9CB9WoQETYsKrvsqpeYoDUsumE_S9oS5bhCiOYRsEHic6XxyKu4ae7bHQe0LpFCFPmOkDmbrajuKejKpRBxECMXF-78P0U-SOFwImeTNNEtqpSs62OsAi5jh--3roLhzsfKX3bpVLidC0maSVdPx3cH0d_rRp-9i6Cd8JKUneHOA5tooIVsg9PTP02_6y4JMUapstVxp_-mJRVvIs15iC7vOKvJmyffJhGekeLyEWZZPsea4m0g" onerror="this.src=fallbacks[1]" alt="Hinge Joint" class="w-full h-full object-cover rounded-lg"/>
+            </button>
+            <button onclick="changeAngle(2)" class="thumb-btn aspect-square rounded-xl overflow-hidden bg-surface-container p-0.5 opacity-60 hover:opacity-100 transition-all">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFjOOYtjCxuheoQh0Qemuc9pw-bXleJ826lqUjqBDfxqrmAjIIO2xrFKTvJOwlb9_0UpjpfKCHmxY_PN37Sl3oOPYIGit9R25hBnaqqasjqTS_6bGvD2p_yKtjJithAWERlXySVU6m6kWIUXzqNZi2IPzD5apslYB8fUir2uT_6of3DrxdnFMA9ShLbNX3hwRvNv3Qa7TIaOfF9C6yX84ayyeEDETHT75ncFlYsYSL84xrQqAy7q-8jg" onerror="this.src=fallbacks[2]" alt="Optics Bar" class="w-full h-full object-cover rounded-lg"/>
+            </button>
+            <button onclick="changeAngle(3)" class="thumb-btn aspect-square rounded-xl overflow-hidden bg-surface-container p-0.5 opacity-60 hover:opacity-100 transition-all">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIL0JbDJetBEs-pPeSxzW7IKhTO-vGZ7cI6vuP1Vtka7F6ceGi5GKkUknwkY7NcSrAJdYw6pTz2Af4IqvElees0L-0CZUjLjznHd1giHYtMPy4wusLQ1qPP2pjINzoz9uexm499teecMg-KEudnR5SLoTWGB5lCXLzMAkhWAi1LrpEzGegFL9ae1-JSeFOqXaWWers5lWkCqLhoQa7VpZQenMxV9lv2hHJXQg9P6lhuoA6EAEnWds7og" onerror="this.src=fallbacks[3]" alt="Evening Mode" class="w-full h-full object-cover rounded-lg"/>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Title & Details -->
+        <div class="flex flex-col gap-space-xs">
+          <div class="flex items-center gap-1.5 text-secondary">
+            <span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+            <span class="text-xs font-semibold uppercase tracking-wider">In Stock • Ships in 24 Hours</span>
+          </div>
+          <h1 class="text-2xl font-bold text-on-surface tracking-tight">AuraPulse Smart Desk Light</h1>
+          <div class="flex items-baseline gap-space-sm pt-1">
+            <span class="text-2xl font-bold text-on-surface">$299</span>
+            <span class="text-sm text-outline line-through">$349</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-xs font-bold uppercase">Save $50</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            Architectural studio lighting engineered with circadian solar sync and zero-glare optical micro-prisms.
+          </p>
+        </div>
+
+        <!-- Finish Swatches -->
+        <div class="flex flex-col gap-space-sm p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-on-surface font-bold uppercase">Architectural Finish</span>
+            <span id="selectedFinishLabel" class="text-xs text-secondary font-semibold">Matte Dark Slate</span>
+          </div>
+          <div class="flex items-center gap-space-md pt-1">
+            <button class="swatch-btn relative flex items-center justify-center w-10 h-10 rounded-full p-1 bg-surface-container-highest shadow-sm" onclick="selectFinish('Matte Dark Slate', 'Ultra-matte anodized aerospace-grade aluminum.', this)">
+              <span class="w-full h-full rounded-full" style="background-color: #1e293b;"></span>
+            </button>
+            <button class="swatch-btn relative flex items-center justify-center w-10 h-10 rounded-full p-1 bg-surface-container" onclick="selectFinish('Anodized Lunar Silver', 'Bead-blasted natural lunar silver finish.', this)">
+              <span class="w-full h-full rounded-full" style="background-color: #94a3b8;"></span>
+            </button>
+            <button class="swatch-btn relative flex items-center justify-center w-10 h-10 rounded-full p-1 bg-surface-container" onclick="selectFinish('Stealth Obsidian', 'Deep obsidian PVD vapor coating.', this)">
+              <span class="w-full h-full rounded-full" style="background-color: #0f172a;"></span>
+            </button>
+          </div>
+          <p id="finishDescription" class="text-xs text-on-surface-variant italic pt-1">
+            Matte Dark Slate — Ultra-matte anodized aerospace-grade aluminum.
+          </p>
+        </div>
+
+        <!-- Tech Specs -->
+        <div class="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm p-space-md gap-3">
+          <h2 class="text-sm text-on-surface font-bold uppercase">Engineering Specs</h2>
+          <div class="flex justify-between text-xs border-b border-slate-100 pb-2"><span class="text-on-surface-variant">Desk Illuminance</span><span class="font-semibold text-on-surface">1,800 Lux @ 45cm</span></div>
+          <div class="flex justify-between text-xs border-b border-slate-100 pb-2"><span class="text-on-surface-variant">Color Temp Range</span><span class="font-semibold text-on-surface">1,800K to 6,500K</span></div>
+          <div class="flex justify-between text-xs border-b border-slate-100 pb-2"><span class="text-on-surface-variant">Color Accuracy</span><span class="font-semibold text-on-surface">99.4 CRI Index</span></div>
+          <div class="flex justify-between text-xs"><span class="text-on-surface-variant">Power Input</span><span class="font-semibold text-on-surface">36W USB-C PD</span></div>
+        </div>
+
+        <!-- Sticky Purchase Dock -->
+        <div class="fixed bottom-20 left-0 w-full z-40 px-margin-mobile pointer-events-none">
+          <div class="max-w-md mx-auto bg-surface-container-lowest/90 backdrop-blur-xl p-3 rounded-full shadow-xl flex items-center justify-between pointer-events-auto">
+            <div class="flex flex-col pl-3">
+              <span class="text-lg font-bold text-on-surface">$299</span>
+            </div>
+            <button onclick="addToCartFromProduct()" class="py-3 px-space-lg rounded-full bg-primary text-on-primary font-bold text-xs flex items-center gap-2 shadow-md active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+              <span>Add to Order</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PAGE 3: CHECKOUT PAGE -->
+    <div id="view-checkout" class="view-page">
+      <div class="px-margin-mobile pt-space-md flex flex-col gap-6 max-w-lg mx-auto w-full">
+        
+        <!-- Cart Summary -->
+        <section class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wider">Your Order Items</h2>
+            <span id="cartItemCountTag" class="text-xs font-semibold text-sky-600">0 Items</span>
+          </div>
+
+          <div id="cartItemsList" class="flex flex-col gap-3">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="flex flex-col gap-2 pt-3 border-t border-slate-100 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Subtotal</span>
+              <span id="subtotalDisplay" class="font-bold text-slate-900">$0.00</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Insured Express Delivery</span>
+              <span class="text-sky-600 font-bold">FREE</span>
+            </div>
+            <div class="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-100">
+              <span>Total</span>
+              <span id="totalDisplay">$0.00</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Shipping Form -->
+        <section class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-4">
+          <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wider">Shipping Details</h2>
+          <form onsubmit="handleCheckoutSubmit(event)" class="flex flex-col gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+              <input required type="text" placeholder="John Doe" class="w-full p-3 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-sky-500"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+              <input required type="email" placeholder="john@example.com" class="w-full p-3 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-sky-500"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Delivery Address</label>
+              <input required type="text" placeholder="123 Studio Street, City" class="w-full p-3 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-sky-500"/>
+            </div>
+
+            <button type="submit" class="w-full py-4 mt-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-sky-400 text-[18px]">lock</span>
+              <span>Complete Order</span>
+            </button>
+          </form>
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/85 backdrop-blur-xl border-t border-slate-200/60 shadow-lg">
+    <div class="flex justify-around items-center h-16 max-w-md mx-auto px-space-md">
+      <button id="nav-discover" onclick="switchView('discover')" class="flex flex-col items-center justify-center gap-1 py-1.5 px-space-md rounded-full text-sky-600 font-bold text-[11px] transition-all">
+        <span class="material-symbols-outlined text-[20px]">home</span>
+        <span>Discover</span>
+      </button>
+      <button id="nav-product-info" onclick="switchView('product-info')" class="flex flex-col items-center justify-center gap-1 py-1.5 px-space-md rounded-full text-on-surface-variant text-[11px] transition-all">
+        <span class="material-symbols-outlined text-[20px]">tune</span>
+        <span>Product</span>
+      </button>
+      <button id="nav-checkout" onclick="switchView('checkout')" class="flex flex-col items-center justify-center gap-1 py-1.5 px-space-md rounded-full text-on-surface-variant text-[11px] transition-all">
+        <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+        <span>Checkout</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    let cart = [];
+    let selectedFinish = 'Matte Dark Slate';
+    const UNIT_PRICE = 299.00;
+
+    const fallbacks = [
+      "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1585336261026-8f5786372969?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80"
+    ];
+
+    const galleryImages = [
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBp0uLpcxBVSLF7IiIJzDrl4iARk06dPrDQCNe-wlwWgHhONvFPEvjzz3mgWvMraVvsuiyo6unbbAcHc0dTVjgKyDGXGBsMakgGOoYpICPk_6Fdoe3pI0Nr32vKQwyIzlqMTO_mK5gwfDP6nAkaGuLltuELBcssOYw0kvsyKp7PAjFOrizrO_hx7PBCCbwoXwhElnOQx7xoh3VLVS0ZUgdrzbj6FudvmXklTYZRUcUvn33oCssoiBPJ1w",
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBs-UJ9CB9WoQETYsKrvsqpeYoDUsumE_S9oS5bhCiOYRsEHic6XxyKu4ae7bHQe0LpFCFPmOkDmbrajuKejKpRBxECMXF-78P0U-SOFwImeTNNEtqpSs62OsAi5jh--3roLhzsfKX3bpVLidC0maSVdPx3cH0d_rRp-9i6Cd8JKUneHOA5tooIVsg9PTP02_6y4JMUapstVxp_-mJRVvIs15iC7vOKvJmyffJhGekeLyEWZZPsea4m0g",
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuAFjOOYtjCxuheoQh0Qemuc9pw-bXleJ826lqUjqBDfxqrmAjIIO2xrFKTvJOwlb9_0UpjpfKCHmxY_PN37Sl3oOPYIGit9R25hBnaqqasjqTS_6bGvD2p_yKtjJithAWERlXySVU6m6kWIUXzqNZi2IPzD5apslYB8fUir2uT_6of3DrxdnFMA9ShLbNX3hwRvNv3Qa7TIaOfF9C6yX84ayyeEDETHT75ncFlYsYSL84xrQqAy7q-8jg",
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDIL0JbDJetBEs-pPeSxzW7IKhTO-vGZ7cI6vuP1Vtka7F6ceGi5GKkUknwkY7NcSrAJdYw6pTz2Af4IqvElees0L-0CZUjLjznHd1giHYtMPy4wusLQ1qPP2pjINzoz9uexm499teecMg-KEudnR5SLoTWGB5lCXLzMAkhWAi1LrpEzGegFL9ae1-JSeFOqXaWWers5lWkCqLhoQa7VpZQenMxV9lv2hHJXQg9P6lhuoA6EAEnWds7og"
+    ];
+
+    let currentAngleIndex = 0;
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-page').forEach(page => page.classList.remove('active-view'));
+      const activeEl = document.getElementById(`view-${viewId}`);
+      if (activeEl) activeEl.classList.add('active-view');
+
+      document.querySelectorAll('nav button').forEach(btn => {
+        btn.className = 'flex flex-col items-center justify-center gap-1 py-1.5 px-space-md rounded-full text-on-surface-variant text-[11px] transition-all';
+      });
+
+      const navBtn = document.getElementById(`nav-${viewId}`);
+      if (navBtn) {
+        navBtn.className = 'flex flex-col items-center justify-center gap-1 py-1.5 px-space-md rounded-full text-sky-600 font-bold text-[11px] transition-all';
+      }
+
+      const label = document.getElementById('headerViewLabel');
+      if (viewId === 'discover') label.textContent = 'Discover';
+      if (viewId === 'product-info') label.textContent = 'Product Info';
+      if (viewId === 'checkout') label.textContent = 'Checkout';
+
+      if (viewId === 'checkout') renderCart();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchSpectrum(mode) {
+      const dayBtn = document.getElementById('dayModeBtn');
+      const amberBtn = document.getElementById('amberModeBtn');
+      const glow = document.getElementById('lightGlow');
+      const pip = document.getElementById('spectrumPip');
+      const readout = document.getElementById('spectrumReadout');
+
+      if (mode === 'day') {
+        dayBtn.className = 'flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full bg-surface-container-lowest text-primary shadow-sm transition-all';
+        amberBtn.className = 'flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full text-on-surface-variant transition-all';
+        glow.className = 'absolute -top-10 left-1/4 w-3/4 h-3/4 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none transition-all duration-700';
+        pip.className = 'w-2 h-2 rounded-full bg-secondary-container animate-pulse';
+        readout.textContent = '5,000K • 1,420 LUX';
+      } else {
+        amberBtn.className = 'flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full bg-surface-container-lowest text-primary shadow-sm transition-all';
+        dayBtn.className = 'flex-1 flex items-center justify-center gap-1.5 py-2 px-space-sm rounded-full text-on-surface-variant transition-all';
+        glow.className = 'absolute -top-10 right-1/4 w-3/4 h-3/4 rounded-full bg-amber-500/20 blur-3xl pointer-events-none transition-all duration-700';
+        pip.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        readout.textContent = '2,200K • 680 LUX';
+      }
+    }
+
+    function changeAngle(idx) {
+      currentAngleIndex = idx;
+      const buttons = document.querySelectorAll('.thumb-btn');
+      buttons.forEach((btn, i) => {
+        if (i === idx) {
+          btn.classList.add('border-2', 'border-secondary', 'opacity-100');
+          btn.classList.remove('opacity-60');
+        } else {
+          btn.classList.remove('border-2', 'border-secondary', 'opacity-100');
+          btn.classList.add('opacity-60');
+        }
+      });
+      const img = document.getElementById('mainProductImg');
+      img.style.opacity = '0.3';
+      setTimeout(() => { 
+        img.src = galleryImages[idx];
+        img.onerror = () => { img.src = fallbacks[idx]; };
+        img.style.opacity = '1'; 
+      }, 150);
+    }
+
+    function selectFinish(name, desc, btn) {
+      selectedFinish = name;
+      document.getElementById('selectedFinishLabel').textContent = name;
+      document.getElementById('finishDescription').textContent = name + ' — ' + desc;
+    }
+
+    function addItemToCart(finishName) {
+      const existing = cart.find(item => item.finish === finishName);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          id: 'aurapulse-lamp',
+          name: 'AuraPulse Desk Light',
+          finish: finishName,
+          price: UNIT_PRICE,
+          quantity: 1
+        });
+      }
+      updateCartBadge();
+      alert(`Added "${finishName}" AuraPulse Light to your order!`);
+    }
+
+    function quickBuy() {
+      addItemToCart('Matte Dark Slate');
+    }
+
+    function addToCartFromProduct() {
+      addItemToCart(selectedFinish);
+    }
+
+    function updateCartBadge() {
+      const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+      document.getElementById('globalCartCount').textContent = totalCount;
+    }
+
+    function changeQuantity(finishName, delta) {
+      const index = cart.findIndex(i => i.finish === finishName);
+      if (index !== -1) {
+        cart[index].quantity += delta;
+        if (cart[index].quantity <= 0) cart.splice(index, 1);
+      }
+      updateCartBadge();
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cartItemsList');
+      const subtotalEl = document.getElementById('subtotalDisplay');
+      const totalEl = document.getElementById('totalDisplay');
+      const countTag = document.getElementById('cartItemCountTag');
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      countTag.textContent = `${totalItems} Item${totalItems !== 1 ? 's' : ''}`;
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-6 text-center text-slate-500 text-xs">
+            Your cart is currently empty.
+            <br/>
+            <button onclick="switchView('product-info')" class="mt-2 text-sky-600 font-bold underline">Explore Product Info Page</button>
+          </div>
+        `;
+        subtotalEl.textContent = '$0.00';
+        totalEl.textContent = '$0.00';
+        return;
+      }
+
+      let subtotal = 0;
+      container.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
+        return `
+          <div class="flex items-center justify-between py-2 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <img src="${fallbacks[0]}" alt="Item Thumbnail" class="w-12 h-12 object-cover rounded-xl border border-slate-200"/>
+              <div class="flex flex-col">
+                <span class="font-bold text-xs text-slate-900">${item.name}</span>
+                <span class="text-[11px] text-slate-500">Finish: <strong class="text-slate-800">${item.finish}</strong></span>
+                <span class="text-xs font-bold text-sky-600 mt-0.5">$${item.price.toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-100 px-2 py-1 rounded-lg">
+              <button onclick="changeQuantity('${item.finish}', -1)" class="w-6 h-6 rounded bg-white font-bold text-xs shadow-sm">-</button>
+              <span class="text-xs font-bold px-1">${item.quantity}</span>
+              <button onclick="changeQuantity('${item.finish}', 1)" class="w-6 h-6 rounded bg-white font-bold text-xs shadow-sm">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      totalEl.textContent = `$${subtotal.toFixed(2)}`;
+    }
+
+    function handleCheckoutSubmit(e) {
+      e.preventDefault();
+      if (cart.length === 0) {
+        alert('Your cart is empty. Please add a product first.');
+        return;
+      }
+      alert('Order Placed! Thank you for purchasing AuraPulse.');
+      cart = [];
+      updateCartBadge();
+      renderCart();
+      switchView('discover');
+    }
+  </script>
+</body>
+</html>
